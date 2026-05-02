@@ -125,7 +125,7 @@ return (
 {tab === “schedule” && <ScheduleTab data={schedules} selected={selSched} onSelect={setSelSched} />}
 {tab === “venue” && <VenueTab data={venues} />}
 {tab === “transport” && <TransportTab data={transports} />}
-{tab === “wear” && <WearTab data={wears} isCoach={isCoach} orders={orders} onOrder={o => setOrders(p => […p, o])} />}
+{tab === “wear” && <WearTab data={wears} isCoach={isCoach} orders={orders} onOrder={o => setOrders(p => [...p, o])} />}
 </div>
 <div style={{ position: “fixed”, bottom: 0, left: “50%”, transform: “translateX(-50%)”, width: “100%”, maxWidth: 430, background: “#fff”, borderTop: “1px solid #E5E9F0”, display: “flex”, boxShadow: “0 -4px 20px rgba(0,0,0,0.08)” }}>
 {NAV.map(n => (
@@ -136,9 +136,9 @@ return (
 </button>
 ))}
 </div>
-{modal === “schedule” && <PostScheduleModal onClose={() => setModal(null)} onSave={v => { setSchedules(p => […p, { …v, id: Date.now() }]); setModal(null); }} />}
-{modal === “venue” && <PostVenueModal onClose={() => setModal(null)} onSave={v => { setVenues(p => […p, { …v, id: Date.now() }]); setModal(null); }} />}
-{modal === “transport” && <PostTransportModal onClose={() => setModal(null)} onSave={v => { setTransports(p => […p, { …v, id: Date.now() }]); setModal(null); }} />}
+{modal === “schedule” && <PostScheduleModal onClose={() => setModal(null)} onSave={v => { setSchedules(p => [...p, { ...v, id: Date.now() }]); setModal(null); }} />}
+{modal === “venue” && <PostVenueModal onClose={() => setModal(null)} onSave={v => { setVenues(p => [...p, { ...v, id: Date.now() }]); setModal(null); }} />}
+{modal === “transport” && <PostTransportModal onClose={() => setModal(null)} onSave={v => { setTransports(p => [...p, { ...v, id: Date.now() }]); setModal(null); }} />}
 </div>
 );
 }
@@ -275,7 +275,7 @@ return (
 <span style={{ fontSize: 13, fontWeight: 600, color: “#1E293B” }}>{opt.label}</span>
 <div style={{ display: “flex”, gap: 8 }}>
 {[{ v: “yes”, label: “◯”, color: “#16A34A”, bg: “#F0FDF4” }, { v: “no”, label: “✕”, color: “#DC2626”, bg: “#FEF2F2” }].map(btn => (
-<button key={btn.v} onClick={() => setReplies(prev => ({ …prev, [t.id]: { …(prev[t.id] || {}), [opt.key]: btn.v } }))} style={{ width: 38, height: 38, borderRadius: 8, border: “2px solid”, borderColor: val === btn.v ? btn.color : “#E2E8F0”, background: val === btn.v ? btn.bg : “#fff”, color: val === btn.v ? btn.color : “#CBD5E1”, fontWeight: 700, fontSize: 16, cursor: “pointer”, display: “flex”, alignItems: “center”, justifyContent: “center” }}>{btn.label}</button>
+<button key={btn.v} onClick={() => setReplies(prev => ({ ...prev, [t.id]: { ...(prev[t.id] || {}), [opt.key]: btn.v } }))} style={{ width: 38, height: 38, borderRadius: 8, border: “2px solid”, borderColor: val === btn.v ? btn.color : “#E2E8F0”, background: val === btn.v ? btn.bg : “#fff”, color: val === btn.v ? btn.color : “#CBD5E1”, fontWeight: 700, fontSize: 16, cursor: “pointer”, display: “flex”, alignItems: “center”, justifyContent: “center” }}>{btn.label}</button>
 ))}
 </div>
 </div>
@@ -405,7 +405,7 @@ return (
 <label style={{ fontSize: 12, color: “#64748B”, fontWeight: 600 }}>{item.name} <span style={{ color: “#2E6DA4” }}>¥{item.price.toLocaleString()}</span></label>
 <div style={{ display: “flex”, flexWrap: “wrap”, gap: 8, marginTop: 8 }}>
 {item.sizes.map(sz => (
-<button key={sz} onClick={() => setSel(p => ({ …p, [item.name]: sz }))} style={{ padding: “7px 14px”, borderRadius: 8, border: “2px solid”, borderColor: sel[item.name] === sz ? “#2E6DA4” : “#E2E8F0”, background: sel[item.name] === sz ? “#EFF6FF” : “#fff”, color: sel[item.name] === sz ? “#2E6DA4” : “#64748B”, fontWeight: 600, fontSize: 13, cursor: “pointer” }}>{sz}</button>
+<button key={sz} onClick={() => setSel(p => ({ ...p, [item.name]: sz }))} style={{ padding: “7px 14px”, borderRadius: 8, border: “2px solid”, borderColor: sel[item.name] === sz ? “#2E6DA4” : “#E2E8F0”, background: sel[item.name] === sz ? “#EFF6FF” : “#fff”, color: sel[item.name] === sz ? “#2E6DA4” : “#64748B”, fontWeight: 600, fontSize: 13, cursor: “pointer” }}>{sz}</button>
 ))}
 </div>
 </div>
@@ -425,7 +425,7 @@ return (
 
 function PostScheduleModal({ onClose, onSave }) {
 const [f, setF] = useState({ title: “”, date: “”, gather: “”, end: “”, category: “練習”, venue: “”, items: “” });
-const s = (k, v) => setF(p => ({ …p, [k]: v }));
+const s = (k, v) => setF(p => ({ ...p, [k]: v }));
 return (
 <Modal title="スケジュール投稿" onClose={onClose}>
 <MF label=“タイトル” value={f.title} onChange={v => s(“title”, v)} placeholder=“例: 春季リーグ戦 第2節” />
@@ -442,18 +442,18 @@ return (
 </div>
 <MF label=“会場” value={f.venue} onChange={v => s(“venue”, v)} placeholder=“市立第一グラウンド” />
 <MF label=“持ち物（カンマ区切り）” value={f.items} onChange={v => s(“items”, v)} placeholder=“ボール, 水筒, 着替え” />
-<button onClick={() => f.title && f.date && onSave({ …f, items: f.items.split(”,”).map(x => x.trim()).filter(Boolean) })} style={{ width: “100%”, padding: “13px 0”, background: “#DC2626”, color: “#fff”, border: “none”, borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: “pointer”, marginTop: 8 }}>投稿する</button>
+<button onClick={() => f.title && f.date && onSave({ ...f, items: f.items.split(”,”).map(x => x.trim()).filter(Boolean) })} style={{ width: “100%”, padding: “13px 0”, background: “#DC2626”, color: “#fff”, border: “none”, borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: “pointer”, marginTop: 8 }}>投稿する</button>
 </Modal>
 );
 }
 
 function PostVenueModal({ onClose, onSave }) {
 const [f, setF] = useState({ name: “”, address: “”, parking: “”, rules: “”, notes: “” });
-const s = (k, v) => setF(p => ({ …p, [k]: v }));
+const s = (k, v) => setF(p => ({ ...p, [k]: v }));
 return (
 <Modal title="会場情報を投稿" onClose={onClose}>
 <MF label=“会場名” value={f.name} onChange={v => s(“name”, v)} placeholder=“市立第一グラウンド” />
-<MF label=“住所” value={f.address} onChange={v => s(“address”, v)} placeholder=“東京都〇〇区…” />
+<MF label=“住所” value={f.address} onChange={v => s(“address”, v)} placeholder=“東京都〇〇区...” />
 <MF label=“駐車場” value={f.parking} onChange={v => s(“parking”, v)} placeholder=“第一駐車場（30台）” />
 <MF label=“入場ルール” value={f.rules} onChange={v => s(“rules”, v)} placeholder=“スパイク着用はコート内のみ” />
 <MF label=“アクセス・備考” value={f.notes} onChange={v => s(“notes”, v)} placeholder=“〇〇駅より徒歩10分” />
@@ -464,7 +464,7 @@ return (
 
 function PostTransportModal({ onClose, onSave }) {
 const [f, setF] = useState({ eventTitle: “”, date: “”, gatherSpot: “”, gatherTime: “”, departTime: “”, method: “”, notes: “” });
-const s = (k, v) => setF(p => ({ …p, [k]: v }));
+const s = (k, v) => setF(p => ({ ...p, [k]: v }));
 return (
 <Modal title="送迎情報を投稿" onClose={onClose}>
 <MF label=“イベント名” value={f.eventTitle} onChange={v => s(“eventTitle”, v)} placeholder=“春季リーグ戦 第2節” />
