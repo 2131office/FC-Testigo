@@ -94,6 +94,7 @@ const [transports, setTransports] = useState(INIT_TRANSPORTS);
 const [wears] = useState(INIT_WEARS);
 const [orders, setOrders] = useState([]);
 const [modal, setModal] = useState(null);
+const [editItem, setEditItem] = useState(null);
 const NAV = [
 { id: "schedule", label: "スケジュール", icon: "📅" },
 { id: "venue", label: "会場", icon: "📍" },
@@ -120,9 +121,9 @@ return (
 </div>
 )}
 <div>
-{tab === "schedule" && <ScheduleTab data={schedules} selected={selSched} onSelect={setSelSched} />}
-{tab === "venue" && <VenueTab data={venues} />}
-{tab === "transport" && <TransportTab data={transports} />}
+{tab === "schedule" && <ScheduleTab data={schedules} selected={selSched} onSelect={setSelSched} isCoach={isCoach} onEdit={item => { setEditItem(item); setModal("edit-schedule"); }} onDelete={id => setSchedules(p => p.filter(x => x.id !== id))} />}
+{tab === "venue" && <VenueTab data={venues} isCoach={isCoach} onEdit={item => { setEditItem(item); setModal("edit-venue"); }} onDelete={id => setVenues(p => p.filter(x => x.id !== id))} />}
+{tab === "transport" && <TransportTab data={transports} isCoach={isCoach} onEdit={item => { setEditItem(item); setModal("edit-transport"); }} onDelete={id => setTransports(p => p.filter(x => x.id !== id))} />}
 {tab === "wear" && <WearTab data={wears} isCoach={isCoach} orders={orders} onOrder={o => setOrders(p => [...p, o])} />}
 </div>
 <div style={{ position: "fixed", bottom: 0, left: "50%", transform: "translateX(-50%)", width: "100%", maxWidth: 430, background: "#fff", borderTop: "1px solid #E5E9F0", display: "flex", boxShadow: "0 -4px 20px rgba(0,0,0,0.08)" }}>
@@ -137,11 +138,30 @@ return (
 {modal === "schedule" && <PostScheduleModal onClose={() => setModal(null)} onSave={v => { setSchedules(p => [...p, { ...v, id: Date.now() }]); setModal(null); }} />}
 {modal === "venue" && <PostVenueModal onClose={() => setModal(null)} onSave={v => { setVenues(p => [...p, { ...v, id: Date.now() }]); setModal(null); }} />}
 {modal === "transport" && <PostTransportModal onClose={() => setModal(null)} onSave={v => { setTransports(p => [...p, { ...v, id: Date.now() }]); setModal(null); }} />}
+{modal === "edit-schedule" && editItem && <PostScheduleModal initialData={editItem} onClose={() => { setModal(null); setEditItem(null); }} onSave={v => { setSchedules(p => p.map(x => x.id === editItem.id ? { ...v, id: editItem.id } : x)); setModal(null); setEditItem(null); }} />}
+{modal === "edit-venue" && editItem && <PostVenueModal initialData={editItem} onClose={() => { setModal(null); setEditItem(null); }} onSave={v => { setVenues(p => p.map(x => x.id === editItem.id ? { ...v, id: editItem.id } : x)); setModal(null); setEditItem(null); }} />}
+{modal === "edit-transport" && editItem && <PostTransportModal initialData={editItem} onClose={() => { setModal(null); setEditItem(null); }} onSave={v => { setTransports(p => p.map(x => x.id === editItem.id ? { ...v, id: editItem.id } : x)); setModal(null); setEditItem(null); }} />}
 </div>
 );
 }
 
-function ScheduleTab({ data, selected, onSelect }) {
+function EditDeleteBar({ onEdit, onDelete }) {
+const [confirm, setConfirm] = useState(false);
+return (
+<div style={{ display: "flex", gap: 8, marginTop: 10, borderTop: "1px solid #F1F5F9", paddingTop: 10 }}>
+<button onClick={onEdit} style={{ flex: 1, padding: "7px 0", borderRadius: 8, border: "1.5px solid #2E6DA4", background: "#fff", color: "#2E6DA4", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>✏️ 編集</button>
+{confirm
+? <div style={{ flex: 2, display: "flex", gap: 6 }}>
+<button onClick={onDelete} style={{ flex: 1, padding: "7px 0", borderRadius: 8, border: "none", background: "#DC2626", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>削除する</button>
+<button onClick={() => setConfirm(false)} style={{ flex: 1, padding: "7px 0", borderRadius: 8, border: "1.5px solid #94A3B8", background: "#fff", color: "#64748B", fontSize: 12, cursor: "pointer" }}>戻る</button>
+</div>
+: <button onClick={() => setConfirm(true)} style={{ flex: 1, padding: "7px 0", borderRadius: 8, border: "1.5px solid #EF4444", background: "#fff", color: "#EF4444", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>🗑 削除</button>
+}
+</div>
+);
+}
+
+function ScheduleTab({ data, selected, onSelect, isCoach, onEdit, onDelete }) {
 if (selected) return <ScheduleDetail item={selected} onBack={() => onSelect(null)} />;
 return (
 <div>
@@ -150,11 +170,14 @@ return (
 {data.map(item => {
 const cc = CC[item.category] || CC["イベント"];
 return (
-<div key={item.id} onClick={() => onSelect(item)} style={{ background: "#fff", borderRadius: 14, padding: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.06)", cursor: "pointer", borderLeft: `4px solid ${cc.border}` }}>
+<div key={item.id} style={{ background: "#fff", borderRadius: 14, padding: 16, boxShadow: "0 2px 8px rgba(0,0,0,0.06)", borderLeft: `4px solid ${cc.border}` }}>
+<div onClick={() => onSelect(item)} style={{ cursor: "pointer" }}>
 <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 8px", borderRadius: 20, background: cc.bg, color: cc.text }}>{item.category}</span>
 <div style={{ fontSize: 16, fontWeight: 700, color: "#1E293B", margin: "6px 0 8px" }}>{item.title}</div>
 <div style={{ fontSize: 13, color: "#475569", marginBottom: 3 }}>📅 {item.date}</div>
 <div style={{ fontSize: 13, color: "#475569" }}>⏰ 集合 {item.gather} 〜 解散 {item.end}</div>
+</div>
+{isCoach && <EditDeleteBar onEdit={() => onEdit(item)} onDelete={() => onDelete(item.id)} />}
 </div>
 );
 })}
@@ -186,7 +209,7 @@ return (
 );
 }
 
-function VenueTab({ data }) {
+function VenueTab({ data, isCoach, onEdit, onDelete }) {
 const [open, setOpen] = useState(null);
 return (
 <div>
@@ -206,6 +229,7 @@ return (
 <IB icon="🅿️" label="駐車場" value={v.parking} />
 <IB icon="📋" label="ルール" value={v.rules} />
 <IB icon="ℹ️" label="アクセス" value={v.notes} />
+{isCoach && <EditDeleteBar onEdit={() => onEdit(v)} onDelete={() => onDelete(v.id)} />}
 </div>
 )}
 </div>
@@ -222,7 +246,7 @@ const TRANSPORT_OPTS = [
 { key: "local", label: "現地解散" },
 ];
 
-function TransportTab({ data }) {
+function TransportTab({ data, isCoach, onEdit, onDelete }) {
 const [replies, setReplies] = useState({});
 return (
 <div>
@@ -421,11 +445,11 @@ return (
 );
 }
 
-function PostScheduleModal({ onClose, onSave }) {
-const [f, setF] = useState({ title: "", date: "", gather: "", end: "", category: "練習", venue: "", items: "" });
+function PostScheduleModal({ onClose, onSave, initialData }) {
+const [f, setF] = useState(initialData ? { ...initialData, items: Array.isArray(initialData.items) ? initialData.items.join(", ") : initialData.items } : { title: "", date: "", gather: "", end: "", category: "練習", venue: "", items: "" });
 const s = (k, v) => setF(p => ({ ...p, [k]: v }));
 return (
-<Modal title="スケジュール投稿" onClose={onClose}>
+<Modal title={initialData ? "スケジュール編集" : "スケジュール投稿"} onClose={onClose}>
 <MF label="タイトル" value={f.title} onChange={v => s("title", v)} placeholder="例: 春季リーグ戦 第2節" />
 <MF label="日程" value={f.date} onChange={v => s("date", v)} placeholder="2026年6月7日（日）" />
 <MF label="集合時間" value={f.gather} onChange={v => s("gather", v)} placeholder="08:00" />
@@ -440,31 +464,31 @@ return (
 </div>
 <MF label="会場" value={f.venue} onChange={v => s("venue", v)} placeholder="市立第一グラウンド" />
 <MF label="持ち物（カンマ区切り）" value={f.items} onChange={v => s("items", v)} placeholder="ボール, 水筒, 着替え" />
-<button onClick={() => f.title && f.date && onSave({ ...f, items: f.items.split(",").map(x => x.trim()).filter(Boolean) })} style={{ width: "100%", padding: "13px 0", background: "#DC2626", color: "#fff", border: "none", borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: "pointer", marginTop: 8 }}>投稿する</button>
+<button onClick={() => f.title && f.date && onSave({ ...f, items: f.items.split(",").map(x => x.trim()).filter(Boolean) })} style={{ width: "100%", padding: "13px 0", background: "#DC2626", color: "#fff", border: "none", borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: "pointer", marginTop: 8 }}>{initialData ? "更新する" : "投稿する"}</button>
 </Modal>
 );
 }
 
-function PostVenueModal({ onClose, onSave }) {
-const [f, setF] = useState({ name: "", address: "", parking: "", rules: "", notes: "" });
+function PostVenueModal({ onClose, onSave, initialData }) {
+const [f, setF] = useState(initialData || { name: "", address: "", parking: "", rules: "", notes: "" });
 const s = (k, v) => setF(p => ({ ...p, [k]: v }));
 return (
-<Modal title="会場情報を投稿" onClose={onClose}>
+<Modal title={initialData ? "会場情報を編集" : "会場情報を投稿"} onClose={onClose}>
 <MF label="会場名" value={f.name} onChange={v => s("name", v)} placeholder="市立第一グラウンド" />
 <MF label="住所" value={f.address} onChange={v => s("address", v)} placeholder="東京都〇〇区..." />
 <MF label="駐車場" value={f.parking} onChange={v => s("parking", v)} placeholder="第一駐車場（30台）" />
 <MF label="入場ルール" value={f.rules} onChange={v => s("rules", v)} placeholder="スパイク着用はコート内のみ" />
 <MF label="アクセス・備考" value={f.notes} onChange={v => s("notes", v)} placeholder="〇〇駅より徒歩10分" />
-<button onClick={() => f.name && onSave(f)} style={{ width: "100%", padding: "13px 0", background: "#DC2626", color: "#fff", border: "none", borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: "pointer", marginTop: 8 }}>投稿する</button>
+<button onClick={() => f.name && onSave(f)} style={{ width: "100%", padding: "13px 0", background: "#DC2626", color: "#fff", border: "none", borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: "pointer", marginTop: 8 }}>{initialData ? "更新する" : "投稿する"}</button>
 </Modal>
 );
 }
 
-function PostTransportModal({ onClose, onSave }) {
-const [f, setF] = useState({ eventTitle: "", date: "", gatherSpot: "", gatherTime: "", departTime: "", method: "", notes: "" });
+function PostTransportModal({ onClose, onSave, initialData }) {
+const [f, setF] = useState(initialData || { eventTitle: "", date: "", gatherSpot: "", gatherTime: "", departTime: "", method: "", notes: "" });
 const s = (k, v) => setF(p => ({ ...p, [k]: v }));
 return (
-<Modal title="送迎情報を投稿" onClose={onClose}>
+<Modal title={initialData ? "送迎情報を編集" : "送迎情報を投稿"} onClose={onClose}>
 <MF label="イベント名" value={f.eventTitle} onChange={v => s("eventTitle", v)} placeholder="春季リーグ戦 第2節" />
 <MF label="日程" value={f.date} onChange={v => s("date", v)} placeholder="2026年6月7日（日）" />
 <MF label="集合場所" value={f.gatherSpot} onChange={v => s("gatherSpot", v)} placeholder="市立第一グラウンド 駐車場前" />
@@ -472,7 +496,7 @@ return (
 <MF label="出発時間" value={f.departTime} onChange={v => s("departTime", v)} placeholder="07:30" />
 <MF label="移動手段" value={f.method} onChange={v => s("method", v)} placeholder="チームバス" />
 <MF label="注意事項" value={f.notes} onChange={v => s("notes", v)} placeholder="遅刻の場合はコーチに連絡" />
-<button onClick={() => f.eventTitle && onSave(f)} style={{ width: "100%", padding: "13px 0", background: "#DC2626", color: "#fff", border: "none", borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: "pointer", marginTop: 8 }}>投稿する</button>
+<button onClick={() => f.eventTitle && onSave(f)} style={{ width: "100%", padding: "13px 0", background: "#DC2626", color: "#fff", border: "none", borderRadius: 12, fontWeight: 700, fontSize: 14, cursor: "pointer", marginTop: 8 }}>{initialData ? "更新する" : "投稿する"}</button>
 </Modal>
 );
 }
